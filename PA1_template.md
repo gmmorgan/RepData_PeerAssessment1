@@ -10,7 +10,8 @@ So as long as you can reproduce all my errors, all is well!
 I use the library "_lubridate_" to handle the dates. I treat the intervals as ordered factors as this is sufficient for my purposes.
 I make my life slightly more difficult by generating these myself. The reason is to ensure there are no missing values and that they are in order.
 
-```{r preproc, echo=TRUE}
+
+```r
 step.data <- read.csv(unzip("activity.zip"))    # This file should be in the local directory
 library(lubridate)                              # A useful date library
 
@@ -29,7 +30,8 @@ step.data = transform(step.data, date=ymd(date), interval = factor(interval, lev
 
 ## What is mean total number of steps taken per day?
 To calculate the mean total number of steps per day, I must first calculate the total number of steps per day.
-```{r means, echo=TRUE}
+
+```r
 # make a simple tally function for no other reason than to save cutting and
 # pasting later and possibly stuffing up.
 tally.steps = function(data) {
@@ -43,13 +45,25 @@ tally.steps = function(data) {
 original.total = tally.steps(step.data)
 rounding=2                                  # round answers to 2 decimal places
 sprintf("mean is %s steps", as.character(round(mean(original.total$steps), rounding)))
+```
+
+```
+## [1] "mean is 9354.23 steps"
+```
+
+```r
 sprintf("median is %d steps", median(original.total$steps))
+```
+
+```
+## [1] "median is 10395 steps"
 ```
 
 
 The question asks for a histogram (a frequency graph), not a bar graph.
 
-```{r step_hist, echo=TRUE}
+
+```r
 # I make this a function so it can be reused for a later question
 step.histogram = function(data, title="Daily Total Steps"){
 # produce a histogram of my tally object
@@ -63,14 +77,17 @@ step.histogram = function(data, title="Daily Total Steps"){
 step.histogram(original.total)
 ```
 
+![plot of chunk step_hist](figure/step_hist.png) 
 
-The mean number of total steps per day is __`r round(mean(original.total$steps), rounding)`__ steps, rounded to `r rounding` decimal places.
-The median number of total steps taken each day is __`r median(original.total$steps)`__ steps.
+
+The mean number of total steps per day is __9354.23__ steps, rounded to 2 decimal places.
+The median number of total steps taken each day is __10395__ steps.
 
 
 ## What is the average daily activity pattern?
 
-```{r daily.pattern, echo=TRUE}
+
+```r
 # aggregate by interval for any day and average these
 step.ave.per.interval = with(step.data,
                             aggregate(list(ave=steps),
@@ -88,23 +105,34 @@ with(step.ave.per.interval, plot(x=as.numeric(interval), y=ave,
                type="l", xaxt="n"))
 axis(1,at=f, labels=f)
 abline(v=max.average.interval, col="red", lty=2)
-
 ```
-```{r echo+TRUE}
+
+![plot of chunk daily.pattern](figure/daily.pattern.png) 
+
+```r
 sprintf("The maximum average steps occurs in interval %s", max.average.interval)
 ```
 
-The maximum average number of steps, averaged across all days occurs during time period __`r max.average.interval`__ with an average of `r round(max.average.steps, rounding)` steps.
+```
+## [1] "The maximum average steps occurs in interval 835"
+```
+
+The maximum average number of steps, averaged across all days occurs during time period __835__ with an average of 206.17 steps.
 
 
 ## Imputing missing values
 To calculate the number of rows missing data, I simply sum the rows where where the number of steps is NA.
 
-```{r missing.values, echo+TRUE}
+
+```r
 rows.missing = sum(is.na(step.data$steps))
 sprintf("%d rows contain missing data", rows.missing)
 ```
-There are __`r rows.missing`__ rows containing NA steps.
+
+```
+## [1] "2304 rows contain missing data"
+```
+There are __2304__ rows containing NA steps.
 
 I choose a strategy for filling in missing values with the average value for the five minute period across all days where it exists.
 There is a possibility that this value may also be NA, but I deliberately ignore this possibility as it does not occur with my data.
@@ -116,7 +144,8 @@ The distribution will become more symmetric.
 I make no justification for this approach and do not argue that there are no better methods.
 It is just an exercise in replacing the missing data.
 
-```{r replace.missing, echo=TRUE}
+
+```r
 # already have the interval averages 
 fixed = step.data                                  # copy the original data.frame
 fixed$steps = ifelse(!is.na(step.data$steps),      # and update the steps column 
@@ -126,9 +155,24 @@ fixed.total = tally.steps(fixed)
 #
 # use the same plotting function as previously
 step.histogram(fixed.total, title="Ave Daily Total Steps after Munging Data")                        
-sprintf("The mean total daily steps is %s", as.character(round(mean(fixed.total$steps), rounding)))
-sprintf("The median total daily steps is %s", as.character(round(median(fixed.total$steps), rounding)))
+```
 
+![plot of chunk replace.missing](figure/replace.missing.png) 
+
+```r
+sprintf("The mean total daily steps is %s", as.character(round(mean(fixed.total$steps), rounding)))
+```
+
+```
+## [1] "The mean total daily steps is 10766.19"
+```
+
+```r
+sprintf("The median total daily steps is %s", as.character(round(median(fixed.total$steps), rounding)))
+```
+
+```
+## [1] "The median total daily steps is 10766.19"
 ```
 This plot shows that _"fixing"_ the missing data makes a significant difference.
 I don't know if this is a good thing.
@@ -137,7 +181,8 @@ The assignment specifies I use the filled in data.
 The differences between weekday activity are clear from the plots below.
 For a start, things start earlier on weekdays.
 
-```{r weekdays, echo=TRUE}
+
+```r
 # My definition of weekend is Saturday or Sunday.
 # I am not interested in public holidays, locales, etc
 
@@ -155,3 +200,5 @@ xyplot(ave~Interval|dt, data=data,            # plot the weekday vs weekend data
                                            labels=seq(0,2400,100), 
                                            rot=90)))
 ```
+
+![plot of chunk weekdays](figure/weekdays.png) 
